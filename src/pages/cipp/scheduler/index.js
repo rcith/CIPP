@@ -13,22 +13,26 @@ const Page = () => {
   const filterList = [
     {
       filterName: "Running",
-      value: [{ id: "TaskState", value: "Running" }],
+      id: "TaskState",
+      value: "Running",
       type: "column",
     },
     {
       filterName: "Planned",
-      value: [{ id: "TaskState", value: "Planned" }],
+      id: "TaskState",
+      value: "Planned",
       type: "column",
     },
     {
       filterName: "Failed",
-      value: [{ id: "TaskState", value: "Failed" }],
+      id: "TaskState",
+      value: "Failed",
       type: "column",
     },
     {
       filterName: "Completed",
-      value: [{ id: "TaskState", value: "Completed" }],
+      id: "TaskState",
+      value: "Completed",
       type: "column",
     },
   ];
@@ -38,7 +42,9 @@ const Page = () => {
     size: "xl",
     actions: actions,
   };
+
   const [showHiddenJobs, setShowHiddenJobs] = useState(false);
+
   return (
     <CippTablePage
       cardButton={
