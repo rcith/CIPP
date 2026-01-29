@@ -107,6 +107,12 @@ const Page = () => {
     waiting: waiting,
   });
 
+  const junkEmailConfigRequest = ApiGetCall({
+    url: `/api/ListUserTrustedBlockedSenders?UserId=${userId}&userPrincipalName=${graphUserRequest.data?.[0]?.userPrincipalName}&tenantFilter=${userSettingsDefaults.currentTenant}`,
+    queryKey: `TrustedBlockedSenders-${userId}`,
+    waiting: waiting && !!graphUserRequest.data?.[0]?.userPrincipalName,
+  });
+
   const groupsList = ApiGetCall({
     url: "/api/ListGraphRequest",
     data: {
@@ -128,6 +134,16 @@ const Page = () => {
       };
     }
 
+    // Handle arrays by joining them
+    if (Array.isArray(userIdentifier)) {
+      userIdentifier = userIdentifier.join(", ");
+    }
+
+    // Ensure userIdentifier is a string
+    if (typeof userIdentifier !== "string") {
+      userIdentifier = String(userIdentifier);
+    }
+
     // Handle special built-in cases
     if (userIdentifier === "Default" || userIdentifier === "Anonymous") {
       return {
@@ -147,7 +163,7 @@ const Page = () => {
         // Exact match on display name
         (group.displayName && group.displayName === userIdentifier) ||
         // Partial match - permission identifier starts with group display name (handles timestamps)
-        (group.displayName && userIdentifier?.startsWith(group.displayName))
+        (group.displayName && userIdentifier.startsWith(group.displayName))
       );
     });
 
@@ -316,9 +332,14 @@ const Page = () => {
   useEffect(() => {
     if (userRequest.isSuccess && userRequest.data?.[0]) {
       const currentSettings = userRequest.data[0];
-      const forwardingAddress = currentSettings.ForwardingAddress;
+      let forwardingAddress = currentSettings.ForwardingAddress;
       const forwardingSmtpAddress = currentSettings.MailboxActionsData?.ForwardingSmtpAddress;
       const forwardAndDeliver = currentSettings.ForwardAndDeliver;
+
+      // Handle ForwardingAddress being an array or string
+      if (Array.isArray(forwardingAddress)) {
+        forwardingAddress = forwardingAddress.join(", ");
+      }
 
       let forwardingType = "disabled";
       let cleanAddress = "";
@@ -890,7 +911,7 @@ const Page = () => {
                     label: "Remove Permission",
                     type: "POST",
                     icon: <Delete />,
-                    url: "/api/ExecModifyCalPerms",
+                    url: "/api/ExecModifyContactPerms",
                     data: {
                       userID: graphUserRequest.data?.[0]?.userPrincipalName,
                       tenantFilter: userSettingsDefaults.currentTenant,
@@ -1071,6 +1092,81 @@ const Page = () => {
     },
   ];
 
+  const junkEmailConfigActions = [
+    {
+      label: "Remove Entry",
+      type: "POST",
+      icon: <Delete />,
+      url: "/api/RemoveTrustedBlockedSender",
+      customDataformatter: (row, action, formData) => {
+        return {
+          userPrincipalName: row?.UserPrincipalName,
+          typeProperty: row?.TypeProperty,
+          value: row?.Value,
+          tenantFilter: userSettingsDefaults.currentTenant,
+        };
+      },
+      confirmText:
+        "Are you sure you want to remove [Value] from the [Type] list for [UserPrincipalName]?",
+      multiPost: false,
+      relatedQueryKeys: `JunkEmailConfig-${userId}`,
+    },
+  ];
+
+  const junkEmailConfigCard = [
+    {
+      id: 1,
+      cardLabelBox: {
+        cardLabelBoxHeader: junkEmailConfigRequest.isFetching ? (
+          <CircularProgress size="25px" color="inherit" />
+        ) : junkEmailConfigRequest.data?.length !== 0 ? (
+          <Check />
+        ) : (
+          <Error />
+        ),
+      },
+      text: "Trusted and Blocked Senders/Domains",
+      subtext: junkEmailConfigRequest.data?.length
+        ? "Trusted/Blocked senders and domains are configured for this user"
+        : "No trusted or blocked senders/domains entries for this user",
+      statusColor: "green.main",
+      table: {
+        title: "Trusted and Blocked Senders/Domains",
+        hideTitle: true,
+        data: junkEmailConfigRequest.data || [],
+        refreshFunction: () => junkEmailConfigRequest.refetch(),
+        isFetching: junkEmailConfigRequest.isFetching,
+        simpleColumns: ["Type", "Value"],
+        actions: junkEmailConfigActions,
+        offCanvas: {
+          children: (data) => {
+            return (
+              <CippPropertyListCard
+                cardSx={{ p: 0, m: -2 }}
+                title="Entry Details"
+                propertyItems={[
+                  {
+                    label: "Type",
+                    value: data.Type,
+                  },
+                  {
+                    label: "Value",
+                    value: data.Value,
+                  },
+                  {
+                    label: "Property",
+                    value: data.TypeProperty,
+                  },
+                ]}
+                actionItems={junkEmailConfigActions}
+              />
+            );
+          },
+        },
+      },
+    },
+  ];
+
   const proxyAddressActions = [
     {
       label: "Make Primary",
@@ -1185,8 +1281,7 @@ const Page = () => {
         <Box
           sx={{
             flexGrow: 1,
-            py: 4,
-            mr: 2,
+            py: 1,
           }}
         >
           <Grid container spacing={2}>
@@ -1245,13 +1340,18 @@ const Page = () => {
                       isCollapsible={true}
                     />
                     <CippBannerListCard
-                      isFetching={calPermissions.isLoading}
+                      isFetching={contactPermissions.isLoading}
                       items={contactCard}
                       isCollapsible={true}
                     />
                     <CippBannerListCard
                       isFetching={mailboxRulesRequest.isLoading}
                       items={mailboxRulesCard}
+                      isCollapsible={true}
+                    />
+                    <CippBannerListCard
+                      isFetching={junkEmailConfigRequest.isLoading}
+                      items={junkEmailConfigCard}
                       isCollapsible={true}
                     />
                     <CippExchangeSettingsForm

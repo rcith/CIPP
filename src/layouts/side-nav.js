@@ -15,7 +15,8 @@ const markOpenItems = (items, pathname) => {
   return items.map((item) => {
     const checkPath = !!(item.path && pathname);
     const exactMatch = checkPath ? pathname === item.path : false;
-    const partialMatch = checkPath ? pathname.startsWith(item.path) : false;
+    // Special handling for root path "/" to avoid matching all paths
+    const partialMatch = checkPath && item.path !== "/" ? pathname.startsWith(item.path) : false;
 
     let openImmediately = exactMatch;
     let newItems = item.items || [];
@@ -42,7 +43,8 @@ const renderItems = ({ collapse = false, depth = 0, items, pathname }) =>
 const reduceChildRoutes = ({ acc, collapse, depth, item, pathname }) => {
   const checkPath = !!(item.path && pathname);
   const exactMatch = checkPath && pathname === item.path;
-  const partialMatch = checkPath && pathname.startsWith(item.path);
+  // Special handling for root path "/" to avoid matching all paths
+  const partialMatch = checkPath && item.path !== "/" ? pathname.startsWith(item.path) : false;
 
   const hasChildren = item.items && item.items.length > 0;
   const isActive = exactMatch || (partialMatch && !hasChildren);
@@ -133,6 +135,17 @@ export const SideNav = (props) => {
     {
       link: "https://huntress.com",
       imagesrc: "/sponsors/huntress_teal.png",
+      priority: 1,
+    },
+    {
+      link: "https://rightofboom.com/rob-2026-overview/rob-2026-registration/?utm_source=CIPP&utm_medium=referral&utm_campaign=CIPPM365&utm_content=cta_button",
+      imagesrc: theme === "light" ? "/sponsors/RoB-light.png" : "/sponsors/RoB.png",
+      priority: 1,
+    },
+    {
+      link: "https://www.relentlesssolutions.com/",
+      imagesrc:
+        theme === "light" ? "/sponsors/relentless-light.png" : "/sponsors/relentless-dark.png",
       priority: 1,
     },
   ];
@@ -237,7 +250,7 @@ export const SideNav = (props) => {
                         cursor: "pointer",
                         maxHeight: "50px", // Limit the height of the image
                         width: "auto",
-                        maxWidth: "100px" // Maintain aspect ratio with max width
+                        maxWidth: "100px", // Maintain aspect ratio with max width
                       }}
                       onClick={() => window.open(randomimg.link)}
                     />

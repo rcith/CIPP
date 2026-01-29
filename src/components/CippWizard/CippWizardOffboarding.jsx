@@ -165,6 +165,12 @@ export const CippWizardOffboarding = (props) => {
                 formControl={formControl}
               />
               <CippFormComponent
+                name="RemoveTeamsPhoneDID"
+                label="Remove Teams Phone DID"
+                type="switch"
+                formControl={formControl}
+              />
+              <CippFormComponent
                 name="DeleteUser"
                 label="Delete user"
                 type="switch"
@@ -374,6 +380,17 @@ export const CippWizardOffboarding = (props) => {
                   name="postExecution.psa"
                   label="PSA"
                   type="switch"
+                  formControl={formControl}
+                />
+              </Grid>
+
+              <Grid size={{ sm: 12, xs: 12 }}>
+                <CippFormComponent
+                  type="textField"
+                  fullWidth
+                  label="Reference"
+                  name="reference"
+                  placeholder="Enter a reference that will be added to the notification title and scheduled task"
                   formControl={formControl}
                 />
               </Grid>
