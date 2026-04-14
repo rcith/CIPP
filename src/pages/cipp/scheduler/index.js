@@ -72,7 +72,6 @@ const Page = () => {
             <CippSchedulerDrawer buttonText="Add Task" />
           </>
         }
-        tenantInTitle={false}
         title="Scheduled Tasks"
         apiUrl={
           showHiddenJobs ? `/api/ListScheduledItems?ShowHidden=true` : `/api/ListScheduledItems`
