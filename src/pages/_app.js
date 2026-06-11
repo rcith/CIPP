@@ -11,6 +11,8 @@ import { store } from '../store'
 import { createTheme } from '../theme'
 import { createEmotionCache } from '../utils/create-emotion-cache'
 import '../libs/nprogress'
+import 'driver.js/dist/driver.css'
+import '../styles/tutorial-overrides.css'
 import { PrivateRoute } from '../components/PrivateRoute'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useMediaPredicate } from 'react-media-hook'
@@ -52,12 +54,15 @@ import {
   Gavel,
   ClearAll as ClearAllIcon,
 } from '@mui/icons-material'
+import { School as TutorialIcon } from '@mui/icons-material'
 import { SvgIcon } from '@mui/material'
 import React, { useEffect, useState, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/router'
 import { persistQueryClient } from '@tanstack/react-query-persist-client'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import { TutorialProvider } from '../contexts/tutorial-context'
+import CippTutorialDialog from '../components/CippComponents/CippTutorialDialog'
 
 const ReactQueryDevtoolsProduction = React.lazy(() =>
   import('@tanstack/react-query-devtools/build/modern/production.js').then((d) => ({
@@ -76,9 +81,15 @@ const App = (props) => {
   const pathname = usePathname()
   const route = useRouter()
   const [dateLocale, setDateLocale] = useState(enUS)
+  const [tutorialDialogOpen, setTutorialDialogOpen] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // Register minimal service worker for Chrome installability
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
 
     const language = navigator.language || navigator.userLanguage || 'en-US'
     const baseLang = language.split('-')[0]
@@ -238,6 +249,12 @@ const App = (props) => {
       href: `https://docs.cipp.app/user-documentation${pathname}`,
       onClick: () => window.open(`https://docs.cipp.app/user-documentation${pathname}`, '_blank'),
     },
+    {
+      id: 'tutorials',
+      icon: <TutorialIcon />,
+      name: 'Tutorials',
+      onClick: () => setTutorialDialogOpen(true),
+    },
   ]
 
   return (
@@ -270,9 +287,15 @@ const App = (props) => {
                           <CssBaseline />
                           <ErrorBoundary FallbackComponent={Error500}>
                             <PrivateRoute>
-                              <ReleaseNotesProvider>
-                                {getLayout(<Component {...pageProps} />)}
-                              </ReleaseNotesProvider>
+                              <TutorialProvider>
+                                <ReleaseNotesProvider>
+                                  {getLayout(<Component {...pageProps} />)}
+                                </ReleaseNotesProvider>
+                                <CippTutorialDialog
+                                  open={tutorialDialogOpen}
+                                  onClose={() => setTutorialDialogOpen(false)}
+                                />
+                              </TutorialProvider>
                             </PrivateRoute>
                           </ErrorBoundary>
                           <Toaster position="top-center" />
