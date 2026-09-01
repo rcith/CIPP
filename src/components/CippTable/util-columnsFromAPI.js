@@ -2,8 +2,7 @@ import { getCippFilterVariant } from '../../utils/get-cipp-filter-variant'
 import { getCippFormatting } from '../../utils/get-cipp-formatting'
 import { getCippTranslation } from '../../utils/get-cipp-translation'
 import { getCippColumnSize } from '../../utils/get-cipp-column-size'
-
-const skipRecursion = ['location', 'ScheduledBackupValues', 'Tenant']
+import { SKIP_RECURSION_KEYS as skipRecursion } from '../../utils/skip-recursion-keys'
 
 // Number of rows to sample when measuring column content width.
 const MAX_SIZE_SAMPLE = 30
@@ -33,10 +32,16 @@ const TIME_AGO_NAMES = new Set([
   'Date', 'WhenCreated', 'WhenChanged', 'CreationTime', 'renewalDate',
   'commitmentTerm.renewalConfiguration.renewalDate', 'purchaseDate', 'NextOccurrence',
   'LastOccurrence', 'NotBefore', 'NotAfter', 'latestDataCollection',
-  'requestDate', 'reviewedDate', 'GeneratedAt',
+  'requestDate', 'reviewedDate', 'GeneratedAt', 'RecordedAt',
 ])
 const MATCH_DATE_TIME = /([dD]ate[tT]ime|[Ee]xpiration|[Tt]imestamp|[sS]tart[Dd]ate)/
-const isDateTimeColumn = (key) => TIME_AGO_NAMES.has(key) || MATCH_DATE_TIME.test(key)
+const ABSOLUTE_DATE_NAMES = new Set([
+  'WindowStart', 'WindowEnd', 'CreatedUtc', 'DownloadedUtc', 'ProcessedUtc',
+  'NextAttemptUtc', 'LastErrorUtc', 'LastPolledUtc',
+  'QueuedUtc', 'StartedUtc', 'CompletedUtc',
+])
+const isDateTimeColumn = (key) =>
+  TIME_AGO_NAMES.has(key) || ABSOLUTE_DATE_NAMES.has(key) || MATCH_DATE_TIME.test(key)
 
 // Measure the pixel width a column needs based on its header and sampled cell values.
 // rawValues are the original data values (before formatting) — if they contain arrays or
@@ -290,7 +295,7 @@ export const utilColumnsFromAPI = (dataArray) => {
             sampleValue,
             values: valuesForColumn,
             getValue: (row) => resolveValue(row),
-            dataArray: filterSample,
+            dataArray,
           }),
           Cell: ({ row }) => {
             const value = resolveValue(row.original)

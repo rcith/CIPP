@@ -36,7 +36,7 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material'
 import { SvgIcon } from '@mui/material'
-import standards from '../../data/standards.json'
+import { getStandards } from '../../utils/standards-data'
 
 const getCategoryIcon = (category) => {
   switch (category) {
@@ -136,7 +136,7 @@ export const CippStandardsDialog = ({ open, onClose, standardsData, currentTenan
   let totalStandardsCount = 0
 
   Object.entries(combinedStandards).forEach(([standardKey, standardConfig]) => {
-    const standardInfo = standards.find((s) => s.name === `standards.${standardKey}`)
+    const standardInfo = getStandards().find((s) => s.name === `standards.${standardKey}`)
     if (standardInfo) {
       const category = standardInfo.cat
       if (!standardsByCategory[category]) {
@@ -258,7 +258,7 @@ export const CippStandardsDialog = ({ open, onClose, standardsData, currentTenan
                                       {info.helpText}
                                     </Typography>
                                   </Box>
-                                  <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                  <Stack useFlexGap direction="row" spacing={0.5} flexWrap="wrap">
                                     <Chip
                                       label={info.impact}
                                       size="small"
@@ -277,7 +277,7 @@ export const CippStandardsDialog = ({ open, onClose, standardsData, currentTenan
                                     <Typography variant="caption" fontWeight="bold" gutterBottom>
                                       Actions:
                                     </Typography>
-                                    <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                    <Stack useFlexGap direction="row" spacing={0.5} flexWrap="wrap">
                                       {templateItem.action && Array.isArray(templateItem.action) ? (
                                         templateItem.action.map((action, actionIndex) => (
                                           <Chip
@@ -367,7 +367,7 @@ export const CippStandardsDialog = ({ open, onClose, standardsData, currentTenan
                                     {info.helpText}
                                   </Typography>
                                 </Box>
-                                <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                <Stack useFlexGap direction="row" spacing={0.5} flexWrap="wrap">
                                   <Chip
                                     label={info.impact}
                                     size="small"
@@ -386,7 +386,7 @@ export const CippStandardsDialog = ({ open, onClose, standardsData, currentTenan
                                   <Typography variant="caption" fontWeight="bold" gutterBottom>
                                     Actions:
                                   </Typography>
-                                  <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                                  <Stack useFlexGap direction="row" spacing={0.5} flexWrap="wrap">
                                     {config.action && Array.isArray(config.action) ? (
                                       config.action.map((action, index) => (
                                         <Chip
